@@ -8,16 +8,18 @@
 
 import UIKit
 import MapKit
+import CoreLocation
 
-class MapViewController: UIViewController {
+class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     
     var mapView: MKMapView!
+    var locationManager: CLLocationManager!
     
     override func loadView() {
-        // Create a map view
         mapView = MKMapView()
-        // Set it as *the* view of this view controller
         view = mapView
+        
+        locationManager = CLLocationManager()
         
         let segmentedControl = UISegmentedControl(items: ["Standart", "Hybrid", "Satellite"])
         segmentedControl.backgroundColor = UIColor.white.withAlphaComponent(0.5)
@@ -28,19 +30,25 @@ class MapViewController: UIViewController {
         segmentedControl.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(segmentedControl)
         
-        let topConstraint = segmentedControl.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: 8)
+        segmentedControl.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: 8).isActive = true
         let margins = view.layoutMarginsGuide
-        let leadingConstraint = segmentedControl.leadingAnchor.constraint(equalTo: margins.leadingAnchor)
-        let trailingConstraint = segmentedControl.trailingAnchor.constraint(equalTo: margins.trailingAnchor)
+        segmentedControl.leadingAnchor.constraint(equalTo: margins.leadingAnchor).isActive = true
+        segmentedControl.trailingAnchor.constraint(equalTo: margins.trailingAnchor).isActive = true
         
-        topConstraint.isActive = true
-        leadingConstraint.isActive = true
-        trailingConstraint.isActive = true
+        // Location button
+        let locationButton = UIButton(type: .system)
+        locationButton.setImage(UIImage(named: "geo_fence")!, for: .normal)
+        locationButton.addTarget(self, action: #selector(locateUser(sender:)), for: .touchUpInside)
+        
+        locationButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(locationButton)
+        
+        locationButton.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor, constant: -10).isActive = true
+        locationButton.trailingAnchor.constraint(equalTo: margins.trailingAnchor).isActive = true
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-       // print("MapViewController loaded its view.")
     }
     
     @objc func mapTypeChanged(_ segControl: UISegmentedControl) {
@@ -55,4 +63,14 @@ class MapViewController: UIViewController {
             break
         }
     }
+    
+    
+    
+    @objc func locateUser(sender: UIButton!) {
+        locationManager.requestWhenInUseAuthorization()
+        mapView.showsUserLocation = true
+        mapView.userTrackingMode = .follow
+    }
+    
+
 }
