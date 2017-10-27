@@ -14,6 +14,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     
     var mapView: MKMapView!
     var locationManager: CLLocationManager!
+    var pinIndex = 0
     
     override func loadView() {
         mapView = MKMapView()
@@ -45,6 +46,19 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         
         locationButton.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor, constant: -10).isActive = true
         locationButton.trailingAnchor.constraint(equalTo: margins.trailingAnchor).isActive = true
+        
+        // Pins button
+        let pinsButton = UIButton(type: .system)
+        pinsButton.setImage(UIImage(named: "worldwide_location")!, for: .normal)
+        pinsButton.addTarget(self, action: #selector(displayNextPin), for: .touchUpInside)
+        pinsButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(pinsButton)
+        
+        pinsButton.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor, constant: -10).isActive = true
+        pinsButton.leadingAnchor.constraint(equalTo: margins.leadingAnchor).isActive = true
+       
+        // Add pins
+        mapView.addAnnotations(getPins())
     }
     
     override func viewDidLoad() {
@@ -72,5 +86,35 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         mapView.userTrackingMode = .follow
     }
     
+    // Pins
+    let locationData = [
+        ["name": "Lviv", "latitude": 49.85, "longtitude": 24.01],
+        ["name": "New York", "latitude": 40.71, "longtitude": -74.00],
+        ["name": "Los Angeles", "latitude": 34.05, "longtitude": -118.24],
+    ]
+    
+    func getPins() -> [MKPointAnnotation] {
+        var pins = [MKPointAnnotation]()
+        for each in locationData {
+            let pin = MKPointAnnotation()
+            pin.coordinate = CLLocationCoordinate2DMake(each["latitude"] as! Double, each["longtitude"] as! Double)
+            pin.title = each["name"] as? String
+            pins.append(pin)
+        }
+        return pins
+    }
+    
+    
+    @objc func displayNextPin() {
+        locationManager.requestWhenInUseAuthorization()
+        var pins = getPins()
+        let region = MKCoordinateRegionMakeWithDistance(pins[pinIndex].coordinate, 500, 500)
+        mapView.setRegion(region, animated: true)
+        pinIndex += 1
+        
+        if (pinIndex > (pins.count - 1)) {
+            pinIndex = 0
+        }
+    }
 
 }
